@@ -159,7 +159,7 @@ def main():
         os.path.join(args.data, TRAIN_RATINGS_FILENAME), args.negative_samples)
     train_dataloader = torch.utils.data.DataLoader(
             dataset=train_dataset, batch_size=args.batch_size, shuffle=True,
-            num_workers=8, pin_memory=True)
+            num_workers=0, pin_memory=True)
     test_ratings = load_test_ratings(os.path.join(args.data, TEST_RATINGS_FILENAME))  # noqa: E501
     test_negs = load_test_negs(os.path.join(args.data, TEST_NEG_FILENAME))
     nb_users, nb_items = train_dataset.nb_users, train_dataset.nb_items
