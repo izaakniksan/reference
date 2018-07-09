@@ -1,2 +1,5 @@
+#data:
 ml-20m.zip
 *.csv
+#IDE folder:
+/.idea/*
