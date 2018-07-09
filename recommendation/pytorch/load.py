@@ -46,7 +46,7 @@ def load_ml_10m(filename, sort=True):
 
 
 def load_ml_20m(filename, sort=True):
-    ratings = pd.read_csv(filename)
+    ratings = pd.read_csv(filename, dtype={'userId': int, 'movieId': int, 'timestamp': int})
     ratings['timestamp'] = pd.to_datetime(ratings['timestamp'], unit='s')
     names = {'userId': 'user_id', 'movieId': 'item_id'}
     ratings.rename(columns=names, inplace=True)

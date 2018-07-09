@@ -13,21 +13,27 @@ echo "STARTING TIMING RUN AT $start_fmt"
 
 # Get command line seed
 seed=${1:-1}
+skip_data=${2:-0}
 
 echo "unzip ml-20m.zip"
 if unzip ml-20m.zip
 then
-    echo "Start processing ml-20m/ratings.csv"
-    t0=$(date +%s)
-	python $BASEDIR/convert.py ml-20m/ratings.csv ml-20m --negatives 999
-    t1=$(date +%s)
-	delta=$(( $t1 - $t0 ))
-    echo "Finish processing ml-20m/ratings.csv in $delta seconds"
+    if [ $skip_data -eq 0 ]
+    then
+        echo "Start processing ml-20m/ratings.csv"
+        t0=$(date +%s)
+        python $BASEDIR/convert.py ml-20m/ratings.csv ml-20m --negatives 50
+        t1=$(date +%s)
+        delta=$(( $t1 - $t0 ))
+        echo "Finish processing ml-20m/ratings.csv in $delta seconds"
+    else
+        echo "Skipped data processing"
+    fi
 
     echo "Start training"
     t0=$(date +%s)
 	python $BASEDIR/ncf.py ml-20m -l 0.0005 -b 2048 --layers 256 128 64 -f 64 \
-		--seed $seed --threshold $THRESHOLD --processes 10
+		--seed $seed --threshold $THRESHOLD --processes 1
     t1=$(date +%s)
 	delta=$(( $t1 - $t0 ))
     echo "Finish training in $delta seconds"
