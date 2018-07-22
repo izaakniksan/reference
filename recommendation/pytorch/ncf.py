@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch import multiprocessing as mp
+from numba import cuda
 
 import utils
 from neumf import NeuMF
@@ -196,13 +197,22 @@ def main():
                             use_cuda=use_cuda, processes=args.processes)
     print('Initial HR@{K} = {hit_rate:.4f}, NDCG@{K} = {ndcg:.4f}'
           .format(K=args.topk, hit_rate=np.mean(hits), ndcg=np.mean(ndcgs)))
+
     for epoch in range(args.epochs):
+        print('First epoch. Starting profiling.')
+        cuda.profile_start()
         model.train()
         losses = utils.AverageMeter()
 
         begin = time.time()
         loader = tqdm.tqdm(train_dataloader)
+
         for batch_index, (user, item, label) in enumerate(loader):
+            # TODO: figure out how big the loader iterable is, and why it doesnt match the batch_size
+            if batch_index == 100:
+                print('test, closing now. 200 iterations reached.')
+                cuda.profile_stop()
+                exit()
             user = torch.autograd.Variable(user, requires_grad=False)
             item = torch.autograd.Variable(item, requires_grad=False)
             label = torch.autograd.Variable(label, requires_grad=False)
@@ -224,6 +234,7 @@ def main():
                            .format(epoch, loss=losses))
             loader.set_description(description)
 
+
         train_time = time.time() - begin
         begin = time.time()
         hits, ndcgs = val_epoch(model, test_ratings, test_negs, args.topk,
@@ -235,11 +246,11 @@ def main():
               .format(epoch=epoch, K=args.topk, hit_rate=np.mean(hits),
                       ndcg=np.mean(ndcgs), train_time=train_time,
                       val_time=val_time))
+
         if args.threshold is not None:
             if np.mean(hits) >= args.threshold:
                 print("Hit threshold of {}".format(args.threshold))
                 return 0
-
 
 if __name__ == '__main__':
     main()

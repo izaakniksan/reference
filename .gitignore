@@ -1,5 +1,11 @@
 #data:
 ml-20m.zip
+/ml-20m/*
 *.csv
 #IDE folder:
 /.idea/*
+__pycache__
+#nvprof output
+my_nvpof_output_*
+#run
+/run/*
