@@ -5,52 +5,32 @@ The model trains on binary information about whether or not a user interacted wi
 # 2. Directions
 ### Steps to configure machine
 
-#### From Source
 
-1. Install [PyTorch v0.4.0](https://github.com/pytorch/pytorch/tree/v0.4.0)
-2. Install `unzip` and `curl`
+Install [PyTorch v0.4.0](https://github.com/pytorch/pytorch/tree/v0.4.0)
+
+Install [Cuda 9.2](https://developer.nvidia.com/cuda-downloads) and [Cudnn 7.1](https://developer.nvidia.com/cudnn)
+
+Ensure that nvprof is in your path, and that you are using nvprof from Cuda 9.2
+```bash
+which nvprof
+```
+
+
+Install `unzip` and `curl`
 
 ```bash
 sudo apt-get install unzip curl
 ```
-3. Checkout the MLPerf repo
+Checkout the MLPerf repo
 ```bash
 git clone https://github.com/mlperf/reference.git
 ```
 
-4. Install other python packages
+Install other python packages
 
 ```bash
 cd reference/recommendation/pytorch
 pip install -r requirements.txt
-```
-
-#### From Docker
-
-1. Checkout the MLPerf repo
-
-```bash
-git clone https://github.com/mlperf/reference.git
-```
-2. Install CUDA and Docker
-
-```bash
-source reference/install_cuda_docker.sh
-```
-
-3. Get the docker image for the recommendation task
-
-```bash
-# Pull from Docker Hub
-docker pull mlperf/recommendation:v0.5
-```
-
-or
-
-```bash
-# Build from Dockerfile
-cd reference/recommendation/pytorch
-sudo docker build -t mlperf/recommendation:v0.5 .
 ```
 
 ### Steps to download and verify data
@@ -64,23 +44,15 @@ source ../download_dataset.sh
 source ../verify_dataset.sh
 ```
 
-### Steps to run and time
+### Steps to run and profile
 
-#### From Source
 
-Run the `run_and_time.sh` script with an integer seed value between 1 and 5
-
-```bash
-source run_and_time.sh SEED
-```
-
-#### Docker Image
+Run the `run_and_profile.sh` script with an integer seed value between 1 and 5.
 
 ```bash
-sudo nvidia-docker run -i -t --rm --ipc=host \
-    --mount "type=bind,source=$(pwd),destination=/mlperf/experiment" \
-    mlperf/recommendation:v0.5 SEED
+source run_and_profile.sh SEED
 ```
+
 
 # 3. Dataset/Environment
 ### Publication/Attribution
@@ -102,13 +74,20 @@ A fixed set of 999 unrated items are also selected to calculate hit rate at 10 f
 ### Training data order
 Data is traversed randomly with 4 negative examples selected on average for every positive example.
 
+# 4. Nvprof
+By default, no metrics or events are specified for profiling. If you wish to manually choose what you are profiling, 
+then edit the nvprof options in the command that is run in *run_and_profile.sh*, found in line 37. Once the model has 
+been fully trained, your output file will be found in the */nvprof_data/* directory, which can then be inspected
+with Nvidia's visual profiler.
 
-# 4. Model
+# 5. Model
 ### Publication/Attribution
 Xiangnan He, Lizi Liao, Hanwang Zhang, Liqiang Nie, Xia Hu and Tat-Seng Chua (2017). [Neural Collaborative Filtering](http://dl.acm.org/citation.cfm?id=3052569). In Proceedings of WWW '17, Perth, Australia, April 03-07, 2017.
 
 The author's original code is available at [hexiangnan/neural_collaborative_filtering](https://github.com/hexiangnan/neural_collaborative_filtering).
 
+### MLPerf repository
+The MLPerf repository used as a basis for this model is available at [mlperf/reference/tree/master/recommendation/pytorch](https://github.com/mlperf/reference/tree/master/recommendation/pytorch)
 # 5. Quality
 ### Quality metric
 Hit rate at 10 (HR@10) with 999 negative items.

@@ -3,9 +3,8 @@
 # to use the script:
 #   run_and_time_nvprof.sh <random seed 1-5> <skip data =1, process data=0>
 
-THRESHOLD=0.6289
+THRESHOLD=0.635
 BASEDIR=$(dirname -- "$0")
-
 
 # start timing
 start=$(date +%s)
@@ -14,7 +13,8 @@ echo "STARTING TIMING RUN AT $start_fmt"
 
 # Get command line seed
 seed=${1:-1}
-skip_data=${2:-0}
+skip_data=0
+#skip_data=${2:-0}
 
 echo "unzip ml-20m.zip"
 if unzip ml-20m.zip
@@ -23,7 +23,7 @@ then
     then
         echo "Start processing ml-20m/ratings.csv"
         t0=$(date +%s)
-        python $BASEDIR/convert.py ml-20m/ratings.csv ml-20m --negatives 50
+        python $BASEDIR/convert.py ml-20m/ratings.csv ml-20m --negatives 999
         t1=$(date +%s)
         delta=$(( $t1 - $t0 ))
         echo "Finish processing ml-20m/ratings.csv in $delta seconds"
@@ -33,8 +33,11 @@ then
 
     echo "Start training"
     t0=$(date +%s)
-	nvprof --profile-from-start off --metrics single_precision_fu_utilization --export-profile my_nvpof_output_%p python $BASEDIR/ncf.py \
-	    ml-20m -l 0.0005 -b 2048 --layers 256 128 64 -f 64 --seed $seed --threshold $THRESHOLD --processes 1
+    #Extra possible options: --metrics single_precision_fu_utilization
+	nvprof --profile-from-start off --export-profile nvprof_data/rundata_%p  \
+    	python $BASEDIR/ncf.py ml-20m -l 0.0005 -b 2048 --layers 256 256 128 64 -f 64 --seed $seed \
+    	--threshold $THRESHOLD --processes 1 --workers 0
+
     t1=$(date +%s)
 	delta=$(( $t1 - $t0 ))
     echo "Finish training in $delta seconds"

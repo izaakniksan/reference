@@ -202,20 +202,26 @@ def main():
           .format(K=args.topk, hit_rate=np.mean(hits), ndcg=np.mean(ndcgs)))
 
     for epoch in range(args.epochs):
-        print('First epoch. Starting profiling.')
-        cuda.profile_start()
+
         model.train()
         losses = utils.AverageMeter()
 
         begin = time.time()
         loader = tqdm.tqdm(train_dataloader)
-
+        length = len(loader)
+        if length < 101:
+            print('Exiting, cannot profile the required 100 iterations. Please re-run with a larger batch size.')
+            cuda.profile_stop()
+            exit()
         for batch_index, (user, item, label) in enumerate(loader):
-            # TODO: figure out how big the loader iterable is, and why it doesnt match the batch_size
-            if batch_index == 100:
-                print('test, closing now. 200 iterations reached.')
+            if batch_index == length//2 and epoch == 0:
+                print('Starting profiling for 100 iterations.')
+                cuda.profile_start()
+
+            if batch_index == length//2+100 and epoch == 0:
+                print('Profiling completed, stopping profiling and continuing training.')
                 cuda.profile_stop()
-                exit()
+
             user = torch.autograd.Variable(user, requires_grad=False)
             item = torch.autograd.Variable(item, requires_grad=False)
             label = torch.autograd.Variable(label, requires_grad=False)
